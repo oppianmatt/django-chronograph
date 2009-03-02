@@ -1,0 +1,65 @@
+===========
+Chronograph
+===========
+
+Chronograph is a simple application that allows you to control the frequency at
+which a Django management command gets run.
+
+To help explain how this is useful, let's consider a simple example.  Say you've
+written an application that displays weather on your site.  You've written a
+custom management command that you can execute which updates the weather::
+
+    python manage.py update_weather
+
+You would like to be able to run this command every hour so that you always have
+the latest weather information displayed on your site.  Rather than having to
+edit your crontab, ``cronograph`` allows you to simply add this functionality
+via your admin.
+
+Installing Chronograph
+======================
+
+Installing ``chronograph`` is pretty simple.  First add it into ``INSTALLED_APPS``
+in your ``settings.py`` file.  Then run `syncdb``.  The only thing left to do is
+set up a periodic call to run the jobs.
+
+If you're using `cron`, the following example can be added to your `crontab`::
+
+    * * * * * /path/to/your/project/manage.py cron
+
+You're done!  Every minute ``cron`` will check to see if you have any pending jobs
+and if you do they'll be run.  No more mucking about with your ``crontab``.
+
+If you have a more complicated setup where ``manange.py`` might not work by default
+see the section below on installing ``chronograph`` in a virtual environment.
+
+
+Using a Virtual Environment
+---------------------------
+
+If you're using a virtual environment, setting up ``chronograph `` involves a bit more
+work, but not by much.  Included is a script called ``chronograph.sh``.  Copy this file
+to your project directory.
+
+You should open up this script and modify the path to your virtual environment's ``activate``
+script::
+
+    $PROJECT_PATH"/../../../ve/bin/activate"
+
+Make sure that this file is executable and then update your ``crontab`` to execute the
+script.  Running ``crontab -e ``::
+
+    * * * * * /path/to/your/project/chronograph.sh /path/to/your/project
+
+Make sure that you pass ``/path/to/your/project`` to the script as the first argument.
+This will ensure that ``cron`` will not have any problems finding your project directory.
+
+
+Using Chronograph
+=================
+
+If you've completed the above steps, you're all done.  Now you can add some jobs to the system.
+Remember, ``chronograph`` is designed to run any install ``django-admin`` management command and
+it accomodates command-line arguments as well.
+
+
