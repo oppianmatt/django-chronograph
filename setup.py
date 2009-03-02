@@ -67,10 +67,9 @@ for dirpath, dirnames, filenames in os.walk(src_dir):
 setup(
     name=app_name,
     version=get_svn_revision(root_dir),
-    description='Populous chronograph application.',
-    author='Populous Project',
-    author_email='someone@populousproject.com',
-    url='http://populousproject.com',
+    description='Django chronograph application.',
+    author='Weston Nielson',
+    author_email='wnielson@gmail.com',
     packages = packages,
     data_files = data_files,
     classifiers=[
@@ -84,5 +83,5 @@ setup(
     ],
     include_package_data=True,
     zip_safe=False,
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'dateutil'],
 )

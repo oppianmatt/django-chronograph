@@ -44,7 +44,7 @@ class Job(models.Model):
     
     def __unicode__(self):
         if self.disabled:
-            return u"%s - disabled" % self.name
+            return _(u"%(name)s - disabled") % {'name': self.name}
         return u"%s - %s" % (self.name, self.timeuntil)
     
     def save(self, force_insert=False, force_update=False):
@@ -65,6 +65,7 @@ class Job(models.Model):
         """
         if self.disabled:
             return _('never (disabled)')
+        
         delta = self.next_run - datetime.now()
         if delta.seconds < 60:
             # Adapted from django.utils.timesince
