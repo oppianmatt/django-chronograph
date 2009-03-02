@@ -6,7 +6,7 @@ from chronograph.models import Job, Log
 try:
     from batchadmin.admin import BatchModelAdmin as ModelAdmin
 except ImportError:
-    from admin import ModelAdmin
+    from django.contrib.admin import ModelAdmin
 
 class JobAdmin(admin.ModelAdmin):
     list_display = ('name', 'next_run', 'last_run', 'frequency', 'params', 'get_timeuntil',)
