@@ -3,6 +3,11 @@ from django.http import HttpResponseRedirect, Http404
 from django.conf.urls.defaults import patterns, url
 from chronograph.models import Job, Log
 
+try:
+    from batchadmin.admin import BatchModelAdmin as ModelAdmin
+except ImportError:
+    from admin import ModelAdmin
+
 class JobAdmin(admin.ModelAdmin):
     list_display = ('name', 'next_run', 'last_run', 'frequency', 'params', 'get_timeuntil',)
     list_filter = ('frequency', 'disabled',)
@@ -39,7 +44,7 @@ class JobAdmin(admin.ModelAdmin):
         )
         return my_urls + urls
 
-class LogAdmin(admin.ModelAdmin):
+class LogAdmin(ModelAdmin):
     list_display = ('job_name', 'run_date',)
     search_fields = ('stdout', 'stderr',)
     
