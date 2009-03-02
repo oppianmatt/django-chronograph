@@ -1,7 +1,7 @@
 import shutil, os, re
 from setuptools import setup, find_packages
 
-app_name = 'chronograph'
+app_name = 'django-chronograph'
 
 def get_svn_revision(path=None):
     rev = None
