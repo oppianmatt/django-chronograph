@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import ungettext, ugettext_lazy as _
 from django.http import HttpResponseRedirect, Http404
 from django.conf.urls.defaults import patterns, url
 from chronograph.models import Job, Log
@@ -22,25 +23,22 @@ class JobAdmin(admin.ModelAdmin):
         }),
     )
     
-    def view_run_job(self, request, pk):
+    def run_job_view(self, request, pk):
+        """
+        Runs the specified job.
+        """
         try:
             job = Job.objects.get(pk=pk)
         except Job.DoesNotExist:
             raise Http404
-        
-        next_run = job.next_run
-        job.run()
-        job.next_run = next_run
-        job.save()
-        
-        request.user.message_set.create(message='The job "%s" was run successfully.' % job)
-        
+        job.run(save=False)
+        request.user.message_set.create(message=_('The job "%(job)s" was run successfully.') % {'job': job})        
         return HttpResponseRedirect(request.path + "../")
     
     def get_urls(self):
         urls = super(JobAdmin, self).get_urls()
         my_urls = patterns('',
-            url(r'^(.+)/run/$', self.admin_site.admin_view(self.view_run_job), name="admin_chronograph_job_run")
+            url(r'^(.+)/run/$', self.admin_site.admin_view(self.run_job_view), name="admin_chronograph_job_run")
         )
         return my_urls + urls
 
@@ -50,7 +48,7 @@ class LogAdmin(ModelAdmin):
     
     def job_name(self, obj):
       return obj.job.name
-    job_name.short_description = 'Name'
+    job_name.short_description = _(u'Name')
 
 admin.site.register(Job, JobAdmin)
 admin.site.register(Log, LogAdmin)
