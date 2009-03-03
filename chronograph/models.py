@@ -32,8 +32,6 @@ class Job(models.Model):
     args = models.CharField(_("args"), max_length=200, blank=True,
         help_text=_("Space separated list; e.g: arg1 option1=True"))
     disabled = models.BooleanField(default=False)
-    #script = models.CharField(_("script"), max_length=800, blank=True)
-
     next_run = models.DateTimeField(_("next run"), blank=True, null=True)
     last_run = models.DateTimeField(_("last run"), editable=False, blank=True, null=True)
     
@@ -67,12 +65,14 @@ class Job(models.Model):
             return _('never (disabled)')
         
         delta = self.next_run - datetime.now()
-        if delta.seconds < 60:
+        if delta.days < 0:
+            # The job is past due and should be run as soon as possible
+            return _('due')
+        elif delta.seconds < 60:
             # Adapted from django.utils.timesince
             count = lambda n: ungettext('second', 'seconds', n)
-            return ugettext('%(number)d %(type)s') % {'number': delta.seconds, 'type': count(delta.seconds)}
-        elif delta.days < 0:
-            return _('due')
+            return ugettext('%(number)d %(type)s') % {'number': delta.seconds,
+                                                      'type': count(delta.seconds)}
         return timeuntil(self.next_run)
     get_timeuntil.short_description = _('time until next run')
     timeuntil = property(get_timeuntil)
@@ -118,7 +118,7 @@ class Job(models.Model):
                 args.append(arg)
         return (args, kwargs)
     
-    def run(self):
+    def run(self, save=True):
         """
         Runs this Job and updates the dates.
         """
@@ -137,9 +137,10 @@ class Job(models.Model):
         run_date = datetime.now()
         call_command(self.command, *args, **kwargs)
         
-        self.last_run = run_date
-        self.next_run = self.rrule.after(run_date)
-        self.save()
+        if save:
+            self.last_run = run_date
+            self.next_run = self.rrule.after(run_date)
+            self.save()
         
         # If we got any output, save it to the log
         if stdout or stderr:
