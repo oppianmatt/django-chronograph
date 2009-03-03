@@ -44,7 +44,8 @@ class JobAdmin(admin.ModelAdmin):
 
 class LogAdmin(ModelAdmin):
     list_display = ('job_name', 'run_date',)
-    search_fields = ('stdout', 'stderr',)
+    search_fields = ('stdout', 'stderr', 'job__name', 'job__command')
+    date_hierarchy = 'run_date'
     
     def job_name(self, obj):
       return obj.job.name
