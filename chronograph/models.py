@@ -11,10 +11,12 @@ from StringIO import StringIO
 
 class JobManager(models.Manager):
     def due(self):
+        """
+        Returns a ``QuerySet`` of all jobs waiting to be run.
+        """
         return self.filter(next_run__lte=datetime.now(), disabled=False)
 
 # A lot of rrule stuff is from django-schedule
-
 freqs = (   ("YEARLY", _("Yearly")),
             ("MONTHLY", _("Monthly")),
             ("WEEKLY", _("Weekly")),
@@ -24,15 +26,19 @@ freqs = (   ("YEARLY", _("Yearly")),
             ("SECONDLY", _("Secondly")))
 
 class Job(models.Model):
+    """
+    A recurring ``django-admin`` command to be run.
+    """
     name = models.CharField(_("name"), max_length=200)
     frequency = models.CharField(_("frequency"), choices=freqs, max_length=10)
-    params = models.TextField(_("params"), null=True, blank=True)
+    params = models.TextField(_("params"), null=True, blank=True,
+        help_text=_('Comma-separated list of <a href="http://labix.org/python-dateutil" target="_blank">rrule parameters</a>. e.g: interval:15'))
     command = models.CharField(_("command"), max_length=200,
         help_text=_("A valid django-admin command to run."), blank=True)
     args = models.CharField(_("args"), max_length=200, blank=True,
         help_text=_("Space separated list; e.g: arg1 option1=True"))
-    disabled = models.BooleanField(default=False)
-    next_run = models.DateTimeField(_("next run"), blank=True, null=True)
+    disabled = models.BooleanField(default=False, help_text=_('If checked this job will never run.'))
+    next_run = models.DateTimeField(_("next run"), blank=True, null=True, help_text=_("If you don't set this it will be determined automatically"))
     last_run = models.DateTimeField(_("last run"), editable=False, blank=True, null=True)
     
     objects = JobManager()
@@ -106,25 +112,28 @@ class Job(models.Model):
     
     def get_args(self):
         """
-        Processes the args and returns a tuple for passing to call_command.
+        Processes the args and returns a tuple or (args, options) for passing to ``call_command``.
         """
         args = []
-        kwargs = {}
+        options = {}
         for arg in self.args.split():
             if arg.find('=') > -1:
                 bits = arg.split('=')
-                kwargs[bits[0]] = bits[1]
+                options[bits[0]] = bits[1]
             else:
                 args.append(arg)
-        return (args, kwargs)
+        return (args, options)
     
     def run(self, save=True):
         """
-        Runs this Job and updates the dates.
+        Runs this ``Job``.  If ``save`` is ``True`` the dates (``last_run`` and ``next_run``)
+        are updated.  If ``save`` is ``False`` the job simply gets run and nothing changes.
+        
+        A ``Log`` will be created if there is any output from either stdout or stderr.
         """
         from django.core.management import call_command
         
-        args, kwargs = self.get_args()
+        args, options = self.get_args()
         stdout = StringIO()
         stderr = StringIO()
         
@@ -135,7 +144,7 @@ class Job(models.Model):
         sys.stderr = stderr
         
         run_date = datetime.now()
-        call_command(self.command, *args, **kwargs)
+        call_command(self.command, *args, **options)
         
         if save:
             self.last_run = run_date
@@ -151,12 +160,15 @@ class Job(models.Model):
                 stderr = stderr.getvalue()
             )
         
-        # Redirect output back to normal
+        # Redirect output back to default
         sys.stdout = ostdout
         sys.stderr = ostderr
             
 
 class Log(models.Model):
+    """
+    A record of stdout and stderr of a ``Job``.
+    """
     job = models.ForeignKey(Job)
     run_date = models.DateTimeField(auto_now_add=True)
     stdout = models.TextField(blank=True)

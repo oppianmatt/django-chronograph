@@ -19,7 +19,7 @@ class JobAdmin(admin.ModelAdmin):
         }),
         ('Frequency options', {
             'classes': ('wide',),
-            'fields': ('frequency', 'params', 'next_run',)
+            'fields': ('frequency', 'next_run', 'params',)
         }),
     )
     
