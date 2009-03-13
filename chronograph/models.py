@@ -152,12 +152,14 @@ class Job(models.Model):
             self.save()
         
         # If we got any output, save it to the log
+        stdout = stdout.getvalue()
+        stderr = stderr.getvalue()
         if stdout or stderr:
             log = Log.objects.create(
                 job = self,
                 run_date = run_date,
-                stdout = stdout.getvalue(),
-                stderr = stderr.getvalue()
+                stdout = stdout,
+                stderr = stderr
             )
         
         # Redirect output back to default
