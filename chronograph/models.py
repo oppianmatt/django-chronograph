@@ -93,8 +93,8 @@ class Job(models.Model):
     
     def get_params(self):
         """
-        >>> rule = Rule(params = "count:1;bysecond:1;byminute:1,2,4,5")
-        >>> rule.get_params()
+        >>> job = Job(params = "count:1;bysecond:1;byminute:1,2,4,5")
+        >>> job.get_params()
         {'count': 1, 'byminute': [1, 2, 4, 5], 'bysecond': 1}
         """
         if self.params is None:
