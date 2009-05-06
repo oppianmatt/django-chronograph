@@ -14,7 +14,7 @@ class JobManager(models.Manager):
         """
         Returns a ``QuerySet`` of all jobs waiting to be run.
         """
-        return self.filter(next_run__lte=datetime.now(), disabled=False)
+        return self.filter(next_run__lte=datetime.now(), disabled=False, is_running=False)
 
 # A lot of rrule stuff is from django-schedule
 freqs = (   ("YEARLY", _("Yearly")),
@@ -40,6 +40,7 @@ class Job(models.Model):
     disabled = models.BooleanField(default=False, help_text=_('If checked this job will never run.'))
     next_run = models.DateTimeField(_("next run"), blank=True, null=True, help_text=_("If you don't set this it will be determined automatically"))
     last_run = models.DateTimeField(_("last run"), editable=False, blank=True, null=True)
+    is_running = models.BooleanField(default=False, editable=False)
     
     objects = JobManager()
     
@@ -144,7 +145,11 @@ class Job(models.Model):
         sys.stderr = stderr
         
         run_date = datetime.now()
+        self.is_running = True
+        self.save()
         call_command(self.command, *args, **options)
+        self.is_running = False
+        self.save()
         
         if save:
             self.last_run = run_date
