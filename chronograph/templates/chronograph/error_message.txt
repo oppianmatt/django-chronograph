@@ -1,0 +1,4 @@
+{% load i18n %}
+{% trans "The job failed to run.  The exception is shown below." %}
+
+{{ exception }}
