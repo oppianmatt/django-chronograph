@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.timesince import timeuntil
 from django.utils.translation import ungettext, ugettext, ugettext_lazy as _
+from django.template import loader, Context
 from django.conf import settings
 
 import os
@@ -143,11 +144,18 @@ class Job(models.Model):
         ostderr = sys.stderr
         sys.stdout = stdout
         sys.stderr = stderr
+        stdout_str, stderr_str = "", ""
         
         run_date = datetime.now()
         self.is_running = True
         self.save()
-        call_command(self.command, *args, **options)
+        try:
+            call_command(self.command, *args, **options)
+        except Exception, e:
+            # The command failed to run; log the exception
+            t = loader.get_template('chronograph/error_message.txt')
+            c = Context({'exception': unicode(e)})
+            stderr_str += t.render(c)
         self.is_running = False
         self.save()
         
@@ -157,14 +165,14 @@ class Job(models.Model):
             self.save()
         
         # If we got any output, save it to the log
-        stdout = stdout.getvalue()
-        stderr = stderr.getvalue()
-        if stdout or stderr:
+        stdout_str += stdout.getvalue()
+        stderr_str += stderr.getvalue()
+        if stdout_str or stderr_str:
             log = Log.objects.create(
                 job = self,
                 run_date = run_date,
-                stdout = stdout,
-                stderr = stderr
+                stdout = stdout_str,
+                stderr = stderr_str
             )
         
         # Redirect output back to default
