@@ -33,7 +33,7 @@ class JobAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(JobAdmin, self).get_urls()
         my_urls = patterns('',
-            url(r'^(.+)/run/$', self.admin_site.admin_view(self.run_job_view), name="admin_chronograph_job_run")
+            url(r'^(.+)/run/$', self.admin_site.admin_view(self.run_job_view), name="chronograph_job_run")
         )
         return my_urls + urls
 
