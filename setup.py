@@ -23,4 +23,5 @@ setup(
         'Programming Language :: Python',
         'Framework :: Django',
     ],
+    url = "http://code.google.com/p/django-chronograph/",   # project home page, if any
 )
