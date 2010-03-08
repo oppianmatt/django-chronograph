@@ -5,7 +5,7 @@ use_setuptools()
 from setuptools import setup, find_packages
 setup(
     name = "django-chronograph",
-    version = "svn-r21-git.1",
+    version = "svn-r21-git.2",
     packages = find_packages(),
 
     include_package_data=True,
@@ -23,8 +23,4 @@ setup(
         'Programming Language :: Python',
         'Framework :: Django',
     ],
-    
-    license = "MIT",
-    keywords = "django s3 build",
-    url = "http://oppian.com/labs/django-build/",   # project home page, if any
 )
